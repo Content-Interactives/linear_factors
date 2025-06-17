@@ -22,6 +22,14 @@ const LinearFactors = () => {
     step2: false,
     step3: false
   });
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [showNavigationButtons, setShowNavigationButtons] = useState(false);
+  const [navigationDirection, setNavigationDirection] = useState(null);
+  const [stepSkipped, setStepSkipped] = useState({
+    step1: false,
+    step2: false,
+    step3: false
+  });
 
   const generateProblem = () => {
     const isLinear = Math.random() < 0.7;
@@ -75,12 +83,19 @@ const LinearFactors = () => {
       step3: false
     });
     setShowSteps(false);
+    setCurrentStepIndex(0);
+    setShowNavigationButtons(false);
+    setNavigationDirection(null);
+    setStepSkipped({
+      step1: false,
+      step2: false,
+      step3: false
+    });
   };
 
   const [currentProblem, setCurrentProblem] = useState({
-    a: 2,
-    b: 3,
     expression: '2x + 3',
+    isLinear: true,
     solution: '-1.50'
   });
 
@@ -98,7 +113,6 @@ const LinearFactors = () => {
           step1: answer ? !currentProblem.isLinear : currentProblem.isLinear 
         }));
         return correct;
-        break;
       case 2:
         const equation = answer.replace(/\s/g, '').toLowerCase();
         const expectedEq = `${currentProblem.expression}=0`.replace(/\s/g, '').toLowerCase();
@@ -124,137 +138,244 @@ const LinearFactors = () => {
   const skipStep = (step) => {
     setCompletedSteps(prev => ({ ...prev, [`step${step}`]: true }));
     setCurrentStep(step + 1);
+    setStepSkipped(prev => ({ ...prev, [`step${step}`]: true }));
+  };
+
+  const handleNavigateHistory = (direction) => {
+    setNavigationDirection(direction);
+    
+    if (direction === 'back' && currentStepIndex > 0) {
+      setCurrentStepIndex(prev => prev - 1);
+    } else if (direction === 'forward' && currentStepIndex < 2) {
+      setCurrentStepIndex(prev => prev + 1);
+    }
+
+    setTimeout(() => {
+      setNavigationDirection(null);
+    }, 300);
   };
 
   React.useEffect(() => {
     generateProblem();
   }, []);
 
+  React.useEffect(() => {
+    if (completedSteps.step1 && completedSteps.step2 && completedSteps.step3) {
+      setShowNavigationButtons(true);
+    }
+  }, [completedSteps]);
+
   return (
-    <div className="bg-gray-100 p-8 w-full max-w-4xl mx-auto">
-      <Card className="w-full shadow-md bg-white">
-        <div className="bg-sky-50 p-6 rounded-t-lg">
-          <h1 className="text-sky-900 text-2xl font-bold">Linear Factors</h1>
-          <p className="text-sky-800">Learn about linear factors and find their zeros!</p>
-        </div>
+    <>
+      <style>{`
+        @property --r {
+          syntax: '<angle>';
+          inherits: false;
+          initial-value: 0deg;
+        }
 
-        <CardContent className="space-y-6 pt-6">
-          <div className="bg-blue-50 p-4 rounded border border-blue-200">
-            <h2 className="text-blue-900 font-bold mb-2">What is a Linear Factor?</h2>
-            <p className="text-blue-600">
-              Linear factors are polynomials of degree 1, meaning the highest exponent of the variable is 1. 
-              They are expressed in the form <span className="font-mono">ax + b</span>, where a and b are real numbers, 
-              and a≠0. Higher degree polynomials can often be factored into linear factors to find their roots or zeros.
-              Practice identifying linear factors and their zeros below!
-            </p>
-          </div>
+        .glow-button { 
+          min-width: auto; 
+          height: auto; 
+          position: relative; 
+          border-radius: 8px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 1;
+          transition: all .3s ease;
+          padding: 7px;
+        }
 
-          <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-            <h2 className="text-xl font-bold mb-4">Example</h2>
-            <Card className="border border-gray-200">
-              <CardContent className="p-6">
-                <div className="space-y-4">
-                  <p className="text-lg mt-8 mb-6">Given: 3x + 12</p>
-                  <div>
-                    <p className="font-medium">Step 1: Identify if this is a linear factor</p>
-                    <div className="p-4 my-2">
-                      <ul className="list-disc ml-6">
-                        <li>The highest exponent of x is 1</li>
-                        <li>The expression is in the form ax + b where a = 3 and b = 12</li>
-                        <li>Since a ≠ 0, this is a linear factor</li>
-                      </ul>
-                    </div>
-                  </div>
-                  <div>
-                    <p className="font-medium">Step 2: Set the expression equal to zero</p>
-                    <div className="p-4 my-2">3x + 12 = 0</div>
-                  </div>
-                  <div>
-                    <p className="font-medium">Step 3: Solve for x</p>
-                    <div className="p-4 my-2">
-                      3x + 12 = 0<br/>
-                      3x = -12<br/>
-                      x = -4
-                    </div>
-                  </div>
-                  <p className="font-bold text-green-600 mt-4">
-                    Therefore, -4 is the zero of the linear factor 3x + 12
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+        .glow-button::before {
+          content: "";
+          display: block;
+          position: absolute;
+          background: #fff;
+          inset: 2px;
+          border-radius: 4px;
+          z-index: -2;
+        }
 
-          <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-purple-900 font-bold">Practice Time!</h2>
-              <Button 
-                onClick={generateProblem}
-                className="bg-sky-500 hover:bg-sky-600 text-white px-4 flex items-center gap-2"
-              >
-                <RefreshCw className="w-4 h-4" />
-                New Problem
-              </Button>
-            </div>
+        .simple-glow {
+          background: conic-gradient(
+            from var(--r),
+            transparent 0%,
+            rgb(0, 255, 132) 2%,
+            rgb(0, 214, 111) 8%,
+            rgb(0, 174, 90) 12%,
+            rgb(0, 133, 69) 14%,
+            transparent 15%
+          );
+          animation: rotating 3s linear infinite;
+          transition: animation 0.3s ease;
+        }
 
-            <div className="text-center text-2xl mb-4">
-              <span className="font-mono">{currentProblem.expression}</span>
-            </div>
+        .simple-glow.stopped {
+          animation: none;
+          background: none;
+        }
 
+        @keyframes rotating {
+          0% {
+            --r: 0deg;
+          }
+          100% {
+            --r: 360deg;
+          }
+        }
+
+        .nav-button {
+          opacity: 1;
+          cursor: default !important;
+          position: relative;
+          z-index: 2;
+          outline: 2px white solid;
+        }
+
+        .nav-button-orbit {
+          position: absolute;
+          inset: -4px;
+          border-radius: 50%;
+          background: conic-gradient(
+            from var(--r),
+            transparent 0%,
+            rgb(0, 255, 132) 2%,
+            rgb(0, 214, 111) 8%,
+            rgb(0, 174, 90) 12%,
+            rgb(0, 133, 69) 14%,
+            transparent 15%
+          );
+          animation: rotating 3s linear infinite;
+          z-index: 0;
+        }
+
+        .nav-button-orbit::before {
+          content: "";
+          position: absolute;
+          inset: 2px;
+          background: transparent;
+          border-radius: 50%;
+          z-index: 0;
+        }
+
+        .nav-button svg {
+          position: relative;
+          z-index: 1;
+        }
+      `}</style>
+      <div className="w-[500px] h-auto mx-auto shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.1),0_0_0_1px_rgba(0,0,0,0.05)] bg-white rounded-lg overflow-hidden">
+        <div className="p-4">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-[#5750E3] text-sm font-medium select-none">Linear Factors Practice</h2>
             <Button 
-              onClick={() => setShowSteps(true)}
-              className="w-full bg-blue-950 hover:bg-blue-900 text-white py-3"
+              onClick={generateProblem}
+              className="bg-[#008545] hover:bg-[#00703d] text-white px-4 h-[32px] flex items-center gap-2"
+            >
+              <RefreshCw className="w-4 h-4" />
+              New Problem
+            </Button>
+          </div>
+
+          <div className="text-center text-xl mb-4">
+            <span className="font-mono">{currentProblem.expression}</span>
+          </div>
+
+          <div className={`glow-button ${showSteps ? 'simple-glow stopped' : 'simple-glow'}`}>
+            <Button 
+              onClick={() => {
+                setShowSteps(true);
+                setCompletedSteps({
+                  step1: false,
+                  step2: false,
+                  step3: false
+                });
+                setUserAnswers({
+                  step1: '',
+                  step2: '',
+                  step3: ''
+                });
+                setHasError({
+                  step1: false,
+                  step2: false,
+                  step3: false
+                });
+                setCurrentStepIndex(0);
+                setShowNavigationButtons(false);
+                setNavigationDirection(null);
+                setStepSkipped({
+                  step1: false,
+                  step2: false,
+                  step3: false
+                });
+              }}
+              className="w-full bg-[#008545] hover:bg-[#00703d] text-white py-2 rounded"
             >
               Solve Step by Step
             </Button>
+          </div>
+        </div>
 
-            {showSteps && (
-              <div className="bg-purple-50 p-4 rounded-lg mt-4">
-                <p className="mb-4">1. Is this a linear factor?</p>
-                {completedSteps.step1 ? (
+        {showSteps && (
+          <div className="bg-gray-50">
+            <div className="p-4 space-y-4">
+              <div className="w-full p-2 mb-1 bg-white border border-[#5750E3]/30 rounded-md">
+                {currentStepIndex === 0 && (
                   <>
-                    <p className="text-green-600 font-bold mb-6">
-                      {currentProblem.isLinear 
-                        ? "Yes! This is a linear factor because the highest power of x is 1 and its coefficient is not 0."
-                        : currentProblem.explanation}
-                    </p>
-                    {!currentProblem.isLinear && (
-                      <div className="bg-green-50 border border-green-200 rounded-lg p-4 mt-4">
-                        <h3 className="text-green-800 text-xl font-bold">Great Work!</h3>
-                        <p className="text-green-700">
-                          You've successfully identified a non-linear factor!
+                    <p className="text-sm mb-2">Step 1: Is this a linear factor?</p>
+                    {!completedSteps.step1 ? (
+                      <div className="space-y-4">
+                        <div className="flex gap-2 items-center">
+                          <Button
+                            onClick={() => checkAnswer(1, true)}
+                            className={`${hasError.step1 && !currentProblem.isLinear ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-[#008545] hover:bg-[#00703d]'} text-white text-sm px-4 py-2 rounded-md`}
+                          >
+                            Yes
+                          </Button>
+                          <Button
+                            onClick={() => checkAnswer(1, false)}
+                            className={`${hasError.step1 && currentProblem.isLinear ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-[#008545] hover:bg-[#00703d]'} text-white text-sm px-4 py-2 rounded-md`}
+                          >
+                            No
+                          </Button>
+                          {hasError.step1 && (
+                            <span className="text-yellow-500 font-medium ml-2">Try again!</span>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex justify-between items-center">
+                        <p className="text-[#008545] font-medium">
+                          {currentProblem.isLinear 
+                            ? "Yes! This is a linear factor because the highest power of x is 1 and its coefficient is not 0."
+                            : currentProblem.explanation}
                         </p>
                       </div>
                     )}
+                    {completedSteps.step1 && !showNavigationButtons && (
+                      <div className="flex justify-end mt-4">
+                        {!stepSkipped.step1 && (
+                          <span className="text-green-600 font-medium mr-2 flex items-center">Great Job!</span>
+                        )}
+                        <div className="glow-button simple-glow">
+                          <Button
+                            onClick={() => setCurrentStepIndex(1)}
+                            className="bg-[#008545] hover:bg-[#00703d] text-white text-sm px-4 py-2 rounded-md"
+                          >
+                            Continue
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </>
-                ) : (
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="flex gap-4">
-                      <Button
-                        onClick={() => checkAnswer(1, true)}
-                        className={`bg-blue-400 hover:bg-blue-500 w-32 ${hasError.step1 && !currentProblem.isLinear ? 'border-2 border-red-500' : ''}`}
-                      >
-                        Yes
-                      </Button>
-                      <Button
-                        onClick={() => checkAnswer(1, false)}
-                        className={`bg-blue-400 hover:bg-blue-500 w-32 ${hasError.step1 && currentProblem.isLinear ? 'border-2 border-red-500' : ''}`}
-                      >
-                        No
-                      </Button>
-                    </div>
-                  </div>
                 )}
 
-                {currentStep >= 2 && currentProblem.isLinear && (
+                {currentStepIndex === 1 && completedSteps.step1 && currentProblem.isLinear && (
                   <>
-                    <p className="mb-4">2. Write the equation to solve for the zero:</p>
-                    {completedSteps.step2 ? (
-                      <p className="text-green-600 font-bold mb-6">
-                        {currentProblem.expression} = 0
-                      </p>
-                    ) : (
-                      <div className="flex items-center gap-4 mb-6">
+                    <p className="text-sm mb-2">Step 2: Write the equation to solve for the zero:</p>
+                    {!completedSteps.step2 ? (
+                      <div className="space-y-4">
                         <Input 
                           type="text"
                           value={userAnswers.step2}
@@ -263,20 +384,41 @@ const LinearFactors = () => {
                             setHasError(prev => ({ ...prev, step2: false }));
                           }}
                           placeholder="e.g., 2x + 3 = 0"
-                          className={`flex-1 ${hasError.step2 ? 'border-red-500' : 'border-blue-300'}`}
+                          className={`flex-1 ${hasError.step2 ? 'border-yellow-500' : 'border-blue-300'}`}
                         />
-                        <div className="flex gap-4">
+                        <div className="flex justify-end gap-2">
                           <Button
                             onClick={() => checkAnswer(2, userAnswers.step2)}
-                            className="bg-blue-400 hover:bg-blue-500"
+                            className="bg-[#008545] hover:bg-[#00703d] text-white text-sm px-4 py-2 rounded-md"
                           >
                             Check
                           </Button>
                           <Button
                             onClick={() => skipStep(2)}
-                            className="bg-gray-400 hover:bg-gray-500 text-white"
+                            className="bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm px-4 py-2 rounded-md"
                           >
                             Skip
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex justify-between items-center">
+                        <p className="text-[#008545] font-medium">
+                          {currentProblem.expression} = 0
+                        </p>
+                      </div>
+                    )}
+                    {completedSteps.step2 && !showNavigationButtons && (
+                      <div className="flex justify-end mt-4">
+                        {!stepSkipped.step2 && (
+                          <span className="text-green-600 font-medium mr-2 flex items-center">Great Job!</span>
+                        )}
+                        <div className="glow-button simple-glow">
+                          <Button
+                            onClick={() => setCurrentStepIndex(2)}
+                            className="bg-[#008545] hover:bg-[#00703d] text-white text-sm px-4 py-2 rounded-md"
+                          >
+                            Continue
                           </Button>
                         </div>
                       </div>
@@ -284,23 +426,11 @@ const LinearFactors = () => {
                   </>
                 )}
 
-                {currentStep >= 3 && (
+                {currentStepIndex === 2 && completedSteps.step2 && (
                   <>
-                    <p className="mb-4">3. Solve for x to find the zero:</p>
-                    {completedSteps.step3 ? (
-                      <>
-                        <p className="text-green-600 font-bold mb-6">
-                          x = {currentProblem.solution}
-                        </p>
-                        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mt-4">
-                          <h3 className="text-green-800 text-xl font-bold">Great Work!</h3>
-                          <p className="text-green-700">
-                            You've successfully identified a linear factor and its zero!
-                          </p>
-                        </div>
-                      </>
-                    ) : (
-                      <div className="flex items-center gap-4 mb-6">
+                    <p className="text-sm mb-2">Step 3: Solve for x to find the zero:</p>
+                    {!completedSteps.step3 ? (
+                      <div className="space-y-4">
                         <Input 
                           type="number"
                           step="0.01"
@@ -310,35 +440,99 @@ const LinearFactors = () => {
                             setHasError(prev => ({ ...prev, step3: false }));
                           }}
                           placeholder="e.g., -1.5"
-                          className={`flex-1 ${hasError.step3 ? 'border-red-500' : 'border-blue-300'}`}
+                          className={`flex-1 ${hasError.step3 ? 'border-yellow-500' : 'border-blue-300'}`}
                         />
-                        <div className="flex gap-4">
+                        <div className="flex justify-end gap-2">
                           <Button
                             onClick={() => checkAnswer(3, userAnswers.step3)}
-                            className="bg-blue-400 hover:bg-blue-500"
+                            className="bg-[#008545] hover:bg-[#00703d] text-white text-sm px-4 py-2 rounded-md"
                           >
                             Check
                           </Button>
                           <Button
                             onClick={() => skipStep(3)}
-                            className="bg-gray-400 hover:bg-gray-500 text-white"
+                            className="bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm px-4 py-2 rounded-md"
                           >
                             Skip
                           </Button>
                         </div>
                       </div>
+                    ) : (
+                      <div className="flex justify-between items-center">
+                        <p className="text-[#008545] font-medium">
+                          x = {currentProblem.solution}
+                        </p>
+                        {!stepSkipped.step3 && (
+                          <span className="text-green-600 font-medium">Great Job!</span>
+                        )}
+                      </div>
                     )}
                   </>
                 )}
               </div>
-            )}
+
+              <div className="flex items-center justify-center gap-2">
+                <div
+                  className="nav-orbit-wrapper"
+                  style={{
+                    position: 'relative',
+                    width: '32px',
+                    height: '32px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    visibility: showNavigationButtons && currentStepIndex > 0 ? 'visible' : 'hidden',
+                    opacity: showNavigationButtons && currentStepIndex > 0 ? 1 : 0,
+                    pointerEvents: showNavigationButtons && currentStepIndex > 0 ? 'auto' : 'none',
+                    transition: 'opacity 0.2s ease',
+                  }}
+                >
+                  <div className="nav-button-orbit"></div>
+                  <div style={{ position: 'absolute', width: '32px', height: '32px', borderRadius: '50%', background: 'white', zIndex: 1 }}></div>
+                  <button
+                    onClick={() => handleNavigateHistory('back')}
+                    className={`nav-button w-8 h-8 flex items-center justify-center rounded-full bg-[#008545]/20 text-[#008545] hover:bg-[#008545]/30 relative z-50`}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M15 18l-6-6 6-6"/>
+                    </svg>
+                  </button>
+                </div>
+                <span className="text-sm text-gray-500 min-w-[100px] text-center">
+                  Step {currentStepIndex + 1} of 3
+                </span>
+                <div
+                  className="nav-orbit-wrapper"
+                  style={{
+                    position: 'relative',
+                    width: '32px',
+                    height: '32px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    visibility: showNavigationButtons && currentStepIndex < 2 ? 'visible' : 'hidden',
+                    opacity: showNavigationButtons && currentStepIndex < 2 ? 1 : 0,
+                    pointerEvents: showNavigationButtons && currentStepIndex < 2 ? 'auto' : 'none',
+                    transition: 'opacity 0.2s ease',
+                  }}
+                >
+                  <div className="nav-button-orbit"></div>
+                  <div style={{ position: 'absolute', width: '32px', height: '32px', borderRadius: '50%', background: 'white', zIndex: 1 }}></div>
+                  <button
+                    onClick={() => handleNavigateHistory('forward')}
+                    className={`nav-button w-8 h-8 flex items-center justify-center rounded-full bg-[#008545]/20 text-[#008545] hover:bg-[#008545]/30 relative z-50`}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M9 18l6-6-6-6"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
-        </CardContent>
-      </Card>
-      <p className="text-center text-gray-600 mt-4">
-        Understanding linear factors is essential for solving polynomial equations!
-      </p>
-    </div>
+        )}
+      </div>
+    </>
   );
 };
 
