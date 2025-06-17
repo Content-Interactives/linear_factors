@@ -264,6 +264,70 @@ const LinearFactors = () => {
           position: relative;
           z-index: 1;
         }
+
+        .yes-no-container {
+          position: relative;
+          display: inline-flex;
+          gap: 0.5rem;
+          padding: 6px;
+          border-radius: 8px;
+          background: conic-gradient(
+            from var(--r),
+            transparent 0%,
+            rgb(0, 255, 132) 2%,
+            rgb(0, 214, 111) 8%,
+            rgb(0, 174, 90) 12%,
+            rgb(0, 133, 69) 14%,
+            transparent 15%
+          );
+          animation: rotating 3s linear infinite;
+        }
+
+        .yes-no-container::before {
+          content: "";
+          position: absolute;
+          inset: 2px;
+          background: white;
+          border-radius: 6px;
+          z-index: 0;
+        }
+
+        .yes-no-container button {
+          position: relative;
+          z-index: 1;
+        }
+
+        .action-buttons-container {
+          position: relative;
+          display: inline-flex;
+          gap: 0.5rem;
+          padding: 6px;
+          border-radius: 8px;
+          background: conic-gradient(
+            from var(--r),
+            transparent 0%,
+            rgb(0, 255, 132) 2%,
+            rgb(0, 214, 111) 8%,
+            rgb(0, 174, 90) 12%,
+            rgb(0, 133, 69) 14%,
+            transparent 15%
+          );
+          animation: rotating 3s linear infinite;
+        }
+
+        .action-buttons-container::before {
+          content: "";
+          position: absolute;
+          inset: 2px;
+          background: white;
+          border-radius: 6px;
+          z-index: 0;
+        }
+
+        .action-buttons-container button {
+          position: relative;
+          z-index: 1;
+        }
       `}</style>
       <div className="w-[500px] h-auto mx-auto shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.1),0_0_0_1px_rgba(0,0,0,0.05)] bg-white rounded-lg overflow-hidden">
         <div className="p-4">
@@ -326,21 +390,23 @@ const LinearFactors = () => {
                     <p className="text-sm mb-2">Step 1: Is this a linear factor?</p>
                     {!completedSteps.step1 ? (
                       <div className="space-y-4">
-                        <div className="flex gap-2 items-center">
-                          <Button
-                            onClick={() => checkAnswer(1, true)}
-                            className={`${hasError.step1 && !currentProblem.isLinear ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-[#008545] hover:bg-[#00703d]'} text-white text-sm px-4 py-2 rounded-md`}
-                          >
-                            Yes
-                          </Button>
-                          <Button
-                            onClick={() => checkAnswer(1, false)}
-                            className={`${hasError.step1 && currentProblem.isLinear ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-[#008545] hover:bg-[#00703d]'} text-white text-sm px-4 py-2 rounded-md`}
-                          >
-                            No
-                          </Button>
+                        <div className="flex items-center gap-4">
+                          <div className="yes-no-container">
+                            <Button
+                              onClick={() => checkAnswer(1, true)}
+                              className={`${hasError.step1 && !currentProblem.isLinear ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-[#008545] hover:bg-[#00703d]'} text-white text-sm px-4 py-2 rounded-md`}
+                            >
+                              Yes
+                            </Button>
+                            <Button
+                              onClick={() => checkAnswer(1, false)}
+                              className={`${hasError.step1 && currentProblem.isLinear ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-[#008545] hover:bg-[#00703d]'} text-white text-sm px-4 py-2 rounded-md`}
+                            >
+                              No
+                            </Button>
+                          </div>
                           {hasError.step1 && (
-                            <span className="text-yellow-500 font-medium ml-2">Try again!</span>
+                            <span className="text-yellow-500 font-medium">Try again!</span>
                           )}
                         </div>
                       </div>
@@ -387,18 +453,20 @@ const LinearFactors = () => {
                           className={`flex-1 ${hasError.step2 ? 'border-yellow-500' : 'border-blue-300'}`}
                         />
                         <div className="flex justify-end gap-2">
-                          <Button
-                            onClick={() => checkAnswer(2, userAnswers.step2)}
-                            className="bg-[#008545] hover:bg-[#00703d] text-white text-sm px-4 py-2 rounded-md"
-                          >
-                            Check
-                          </Button>
-                          <Button
-                            onClick={() => skipStep(2)}
-                            className="bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm px-4 py-2 rounded-md"
-                          >
-                            Skip
-                          </Button>
+                          <div className="action-buttons-container">
+                            <Button
+                              onClick={() => checkAnswer(2, userAnswers.step2)}
+                              className="bg-[#008545] hover:bg-[#00703d] text-white text-sm px-4 py-2 rounded-md"
+                            >
+                              Check
+                            </Button>
+                            <Button
+                              onClick={() => skipStep(2)}
+                              className="bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm px-4 py-2 rounded-md"
+                            >
+                              Skip
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     ) : (
@@ -443,18 +511,20 @@ const LinearFactors = () => {
                           className={`flex-1 ${hasError.step3 ? 'border-yellow-500' : 'border-blue-300'}`}
                         />
                         <div className="flex justify-end gap-2">
-                          <Button
-                            onClick={() => checkAnswer(3, userAnswers.step3)}
-                            className="bg-[#008545] hover:bg-[#00703d] text-white text-sm px-4 py-2 rounded-md"
-                          >
-                            Check
-                          </Button>
-                          <Button
-                            onClick={() => skipStep(3)}
-                            className="bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm px-4 py-2 rounded-md"
-                          >
-                            Skip
-                          </Button>
+                          <div className="action-buttons-container">
+                            <Button
+                              onClick={() => checkAnswer(3, userAnswers.step3)}
+                              className="bg-[#008545] hover:bg-[#00703d] text-white text-sm px-4 py-2 rounded-md"
+                            >
+                              Check
+                            </Button>
+                            <Button
+                              onClick={() => skipStep(3)}
+                              className="bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm px-4 py-2 rounded-md"
+                            >
+                              Skip
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     ) : (
